@@ -55,6 +55,4 @@ class UserModelsTestCase(TestCase):
         self.assertEqual(user.id,post.user_id) #make sure id's match up
         self.assertTrue(len(user.posts)>0) # make sure a post is returned
 
-
-# class PostModelsTestCase(TestCase):
-#     """Test the post models or SQLAlchemy"""
+\

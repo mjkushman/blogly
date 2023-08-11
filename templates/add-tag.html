@@ -1,0 +1,25 @@
+{% extends 'base.html' %} {% block title %} New Post {% endblock %} {% block
+    content %}
+    
+    <h1>Add a New Tag</h1>
+    <div class="container-sm">
+      <form action="/tags/new" method="POST">
+        <div class="form-group">
+          <label for="title">Tag name</label>
+          <input type="text" name="name" class="form-control"/>
+        </div>
+        
+        <button class="btn btn-outline-secondary" formaction="/tags" formmethod="GET">Cancel</button>
+        <button class="btn btn-success">Add</button>
+      </form>
+    </div>
+    <div>
+        <h3>Current Tags:</h3>
+        <ul>
+            {% for tag in tags %}
+            <li><a href="{{tag.id}}">{{tag.name}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    
+    {% endblock %}

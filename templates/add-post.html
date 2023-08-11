@@ -12,7 +12,14 @@ content %}
       <label for="content">Content</label>
       <textarea name="content" id="" rows="5" class="form-control"></textarea>
     </div>
-    <button class="btn btn-info" formaction="/users/{{user.id}}" formmethod="GET">Cancel</button>
+    <p>Choose Tags</p>
+    {%for tag in tags %}
+      <div>
+        <input type="checkbox" name="tags" value="{{tag.id}}">
+        <label for="tags">{{tag.name}}</label>
+    </div>
+    {% endfor %}
+    <a class="btn btn-outline-secondary" href="/users/{{user.id}}" formmethod="GET">Cancel</a>
     <button class="btn btn-success">Add</button>
   </form>
 </div>

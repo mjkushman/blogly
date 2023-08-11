@@ -6,13 +6,13 @@
 <div class="container">
   <form action="/users/{{user.id}}/edit" method="POST">
     <label for="first_name">First Name</label>
-    <input type="text" name="first_name" placeholder="{{user.first_name}}" />
+    <input type="text" name="first_name" value="{{user.first_name}}" />
     <label for="last_name">Last Name</label>
-    <input type="text" name="last_name" placeholder="{{user.last_name}}" />
+    <input type="text" name="last_name" value="{{user.last_name}}" />
     <label for="image_url">Image URL</label>
-    <input type="text" name="image_url" placeholder="{{user.image_url}}"/>
+    <input type="text" name="image_url" value="{{user.image_url}}"/>
     <div>
-      <a href="/users/{{user.id}}"><button class="btn btn-secondary">Cancel</button></a>
+      <a class="btn btn-secondary" href="/users/{{user.id}}">Cancel</a>
       <button class="btn btn-success">Save</button>
     </div>
   </form>

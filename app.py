@@ -2,8 +2,8 @@
 https://lessons.springboard.com/SQLAlchemy-Part-1-325f6b332e1f49cbb2c3b72f91cf73ae
 """
 
-from flask import Flask, render_template, redirect, request
-from models import db, connect_db, User, Post
+from flask import Flask, render_template, redirect, request, flash
+from models import db, connect_db, User, Post, Tag
 from flask_debugtoolbar import DebugToolbarExtension
 
 app = Flask(__name__)
@@ -40,7 +40,7 @@ def create_user():
 
     db.session.add(new_user)
     db.session.commit()
-
+    flash(f'{user.first_name} has been created')
     return redirect("/")
 
 
@@ -61,35 +61,26 @@ def show_edit_user_form(user_id):
 @app.route("/users/<user_id>/edit", methods=["POST"])
 def edit_user(user_id):
     user = User.query.get(user_id)
-    if request.form["first_name"]:
-        first_name = request.form["first_name"]
-    else:
-        first_name = user.first_name
-
-    if request.form["last_name"]:
-        last_name = request.form["last_name"]
-    else:
-        last_name = user.last_name
-
-    if request.form["image_url"]:
-        image_url = request.form["image_url"]
-    else:
-        image_url = user.image_url
+    first_name = request.form["first_name"]
+    last_name = request.form["last_name"]
+    image_url = request.form["image_url"]
 
     user.edit_user(first_name, last_name, image_url)
 
     db.session.add(user)
     db.session.commit()
-
+    flash(f'{user.first_name} has been updated')
     return redirect(f"/users/{user.id}")
 
 
 @app.route("/users/<user_id>/delete", methods=["POST"])
 def delete_user(user_id):
     """deletes a user from the database"""
+    user=User.query.get(user_id)
     User.query.filter(User.id == user_id).delete()
 
     db.session.commit()
+    flash(f'{user.first_name} has been deleted')
     return redirect("/")
 
 
@@ -97,7 +88,8 @@ def delete_user(user_id):
 @app.route("/users/<user_id>/posts/new")
 def show_add_post(user_id):
     user = User.query.get(user_id)
-    return render_template("add-post.html", user=user)
+    tags = Tag.query.all()
+    return render_template("add-post.html", user=user, tags=tags)
 
 
 # Handle add form, add post and redirect to the user detail page
@@ -105,8 +97,16 @@ def show_add_post(user_id):
 def handle_add_post(user_id):
     title = request.form["title"]
     content = request.form["content"]
+    tag_ids = request.form.getlist('tags')
     new_post = Post(title=title, content=content, user_id=user_id)
 
+    db.session.add(new_post)
+    db.session.commit()
+
+    for tag_id in tag_ids:
+        tag = Tag.query.get(tag_id)
+        # print(tag_id)
+        new_post.tags.append(tag)
     db.session.add(new_post)
     db.session.commit()
     return redirect(f"/users/{user_id}")
@@ -116,14 +116,16 @@ def handle_add_post(user_id):
 def show_post(post_id):
     """# Show a post. Show buttons to edit and delete the post"""
     post = Post.query.get(post_id)
-    return render_template("post-detail.html", post=post)
+    tags = post.tags
+    return render_template("post-detail.html", post=post, tags=tags)
 
 
 @app.route("/posts/<post_id>/edit")
 def edit_post(post_id):
     """Show form to edit a post, and to cancel (back to user page)"""
     post = Post.query.get(post_id)
-    return render_template("edit-post.html", post=post)
+    all_tags = Tag.query.all()
+    return render_template("edit-post.html", post=post, all_tags=all_tags)
 
 
 @app.route("/posts/<post_id>/edit", methods=["POST"])
@@ -131,17 +133,14 @@ def handle_edit_post(post_id):
     """Handle editing of a post. Redirect back to the post view"""
     """A route to handle post edit submissions"""
     post = Post.query.get(post_id)
-    if request.form["title"]:
-        title = request.form["title"]
-    else:
-        title = post.title
+    title = request.form["title"]    
+    content = request.form["content"]
+    tag_ids = request.form.getlist('tags')
+    
+    tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
 
-    if request.form["content"]:
-        content = request.form["content"]
-    else:
-        content = post.content
+    post.edit_post(title, content, tags)
 
-    post.edit_post(title, content)
     db.session.add(post)
     db.session.commit()
 
@@ -155,3 +154,65 @@ def delete_post(post_id):
 
     db.session.commit()
     return redirect("/")
+
+
+
+@app.route('/tags')
+def show_tags():
+    tags = Tag.query.all()
+    """Lists all tags, with links to the tag detail page."""
+    return render_template('tags.html', tags=tags)
+
+
+
+@app.route('/tags/<tag_id>')
+def tag_detail(tag_id):
+    """Show detail about a tag. Have links to edit form and to delete."""
+    tag = Tag.query.get(tag_id) #selects the specific tag
+    return render_template('tag-detail.html', tag=tag)
+
+
+
+@app.route('/tags/new')
+def show_add_tag():
+    """Shows a form to add a new tag."""
+    tags = Tag.query.all()
+    return render_template('add-tag.html', tags=tags)
+
+
+@app.route('/tags/new', methods=['POST'])
+def handle_add_tag():
+    """Process add form, adds tag, and redirect to tag list."""
+    new_tag = Tag(name=request.form['name'])
+    db.session.add(new_tag)
+    db.session.commit()
+    flash(f'{new_tag.name} created')
+    return redirect('/tags')
+
+
+@app.route('/tags/<tag_id>/edit')
+def show_edit_tag(tag_id):
+    """Show edit form for a tag."""
+    tag = Tag.query.get(tag_id)
+    return render_template('edit-tag.html', tag=tag)
+
+
+@app.route('/tags/<tag_id>/edit', methods=['POST'])
+def handle_edit_tag(tag_id):
+    """Process edit form, edit tag, and redirects to the tags list."""
+    tag = Tag.query.get(tag_id) #select the tag by id
+    tag.edit_tag(request.form['name'])
+    
+    db.session.add(tag)
+    db.session.commit()
+    return redirect(f'/tags/{tag.id}')
+
+
+# TODO
+@app.route('/tags/<tag_id>/edit', methods=['POST'])
+def delete_tag(tag_id):
+    """Delete a tag."""
+    tag = Tag.query.get(tag_id)
+    Tag.query.filter(Tag.id == tag_id).delete()
+    flash(f"{tag.name} deleted")
+    return redirect('/tags')

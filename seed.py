@@ -1,4 +1,4 @@
-from models import User, db, Post
+from models import User, db, Post, Tag
 from app import app
 
 db.drop_all()
@@ -23,6 +23,19 @@ miyuki = User(first_name='Miyuki',last_name='Sawashiro',image_url='https://uploa
 db.session.add_all([mike,courtnie,tim,willy,mamiko,daisuke,miyuki])
 db.session.commit()
 
+# Add tags
+
+t1 = Tag(name='funny') 
+t2 = Tag(name='sad')
+t3 = Tag(name='erotic')
+t4 = Tag(name='data')
+t5 = Tag(name='product')
+t6 = Tag(name='insightful')
+
+db.session.add_all([t1, t2, t3, t4, t5, t6])
+db.session.commit()
+
+
 # Add posts
 
 p1 = Post(title='All the ways you wronged me',content='haha lol',user_id='1')
@@ -35,4 +48,22 @@ p7 = Post(title='The thing I would never do',content='finger sniffer',user_id='4
 p8 = Post(title='How to get money fast',content='Rob banks',user_id='4')
 
 db.session.add_all([p1,p2,p3,p4,p5,p6,p7,p8])
+db.session.commit()
+
+# Add tags to posts
+
+p1.tags.append(t1)
+p1.tags.append(t2)
+p2.tags.append(t2)
+p2.tags.append(t3)
+p3.tags.append(t4)
+p4.tags.append(t4)
+p4.tags.append(t1)
+p4.tags.append(t5)
+p6.tags.append(t6)
+p6.tags.append(t1)
+p7.tags.append(t5)
+p7.tags.append(t2)
+p8.tags.append(t5)
+p8.tags.append(t6)
 db.session.commit()

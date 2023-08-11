@@ -1,9 +1,12 @@
 """Models for Blogly.
-https://lessons.springboard.com/SQLAlchemy-Part-1-325f6b332e1f49cbb2c3b72f91cf73ae
+pt1: https://lessons.springboard.com/SQLAlchemy-Part-1-325f6b332e1f49cbb2c3b72f91cf73ae
+pt2: 
+pt3: https://lessons.springboard.com/Many-to-Many-Blogly-73a6d9ff082b4af9b83c32bc1f2515fa
 """
 
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+
 
 db = SQLAlchemy()
 
@@ -53,7 +56,8 @@ class Post(db.Model):
     __tablename__ = "posts"
 
     def __repr__(self):
-        return f""
+        s = self
+        return f"id: {s.id}, created_at: {s.created_at}, user: {s.user}, title: {s.title}, content: {s.content}"
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String, nullable=False)
@@ -62,10 +66,30 @@ class Post(db.Model):
     user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
     user = db.relationship('User',backref='posts')
 
-    def edit_post(self,title,content):
+    def edit_post(self,title,content, tags):
         """updates a post"""
         self.title=title
         self.content=content
-    
+        self.tags=tags
 
-    
+    # tags = db.relation('Tag', secondary='posts_tags', backref='posts') #through relationship. Woops I didn't need to add it to both Post and Tag. Added to Tag only
+
+
+class Tag(db.Model):
+    __tablename__='tags'
+
+    id = db.Column(db.Integer, primary_key =True)
+    name = db.Column(db.String(50), nullable=False)
+
+    posts = db.relation('Post', secondary='posts_tags',backref='tags') #through relationship
+
+    def edit_tag(self,name):
+        """allows updating of a tag"""
+        self.name=name
+
+
+class PostTag(db.Model):
+    __tablename__='posts_tags'
+
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), primary_key=True)
+    tag_id = db.Column(db.Integer, db.ForeignKey('tags.id'), primary_key=True)

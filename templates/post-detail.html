@@ -1,15 +1,24 @@
-{% extends 'base.html' %} {% block title %} {{post.title}} {% endblock %} 
-{% block content %}
+{% extends 'base.html' %} {% block title %} {{post.title}} {% endblock %} {%
+block content %}
 
 <h1>{{post.title}}</h1>
 
 <div class="container">
-<p>{{post.content}}</p>
+  <p>{{post.content}}</p>
 </div>
-<p class="font-italic">By {{post.user.first_name}} {{post.user.last_name}}</p>
+<p class="font-italic">By <a href="/users/{{post.user.id}}">{{post.user.first_name}} {{post.user.last_name}}</a></p>
+{% if tags %}
+<div>
+  Tags: {% for tag in tags %}
+  <a href="/tags/{{tag.id}}" type="button" class="btn btn-outline-primary btn-sm"
+    >{{tag.name}}</a
+  >
+  {% endfor %}
+</div>
+{% endif %}
 <a href="/posts/{{post.id}}/edit" class="btn btn-primary">Edit</a>
 <form action="/posts/{{post.id}}/delete" method="POST">
-    <button class="btn btn-danger">Delete</button>
-</form>  
+  <button class="btn btn-danger">Delete</button>
+</form>
 
-{% endblock  %}
+{% endblock %}
